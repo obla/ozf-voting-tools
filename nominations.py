@@ -69,7 +69,7 @@ def sort_teams(teams):
         team_division = data['division']
         if team_division not in divisions:
             divisions[team_division] = {}
-        del data['division']
+        # del data['division']
         divisions[team_division][team_name] = data
 
     return divisions
@@ -87,21 +87,22 @@ def create_division_report(name, teams):
         'Friendliest Team': 'team award'
     }
 
+    mvp = []
     for award, designator in awards.items():
-        # print(award + ': ', end='')
         if designator == 'team award':
             canidate_list = list(teams.keys())
         else:
             canidate_list = get_award_list(teams, designator)
+            mvp += canidate_list
         awards[award] = canidate_list
-        # print(*canidate_list, sep=', ')
+    awards['Most Valuble Player'] = list(set(mvp))
 
     print(name.capitalize(), 'voting')
     print('=' * len(name + ' voting'))
 
     for award, canidate_list in sorted(awards.items()):
         print(award + ': ', end='')
-        print(*canidate_list, sep=', ', end='\n\n')
+        print(*sorted(canidate_list), sep=', ', end='\n')
 
     print()
 
@@ -111,6 +112,9 @@ def get_award_list(teams, designator):
 
     if type(class_list[0]) is list:
         class_list = [scout for scout_list in class_list for scout in scout_list]
-    return class_list
+    return sorted(class_list)
+
+def prettyprint(obj):
+    print(json.dumps(obj, indent=4))
 
 main()
