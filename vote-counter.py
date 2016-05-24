@@ -2,7 +2,11 @@ import json
 
 
 def main():
-    votes = get_votes('votes_test.txt')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('file')
+    args = parser.parse_args()
+
+    votes = get_votes(args.file)
     for division, voting in votes.items():
         produce_division_report(division, voting)
 
