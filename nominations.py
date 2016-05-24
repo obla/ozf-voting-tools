@@ -1,6 +1,7 @@
 import argparse
 import json
 
+
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('file')
@@ -19,10 +20,10 @@ def read_nominations_file(filename):
 
     nominations_list = [line.strip()
                         for line in nominations_list
-                        if line != '\n'
-                        and line != '']
+                        if line != '\n' and line != '']
 
     return nominations_list
+
 
 def create_team_objects(nominations_list):
     current_team = ''
@@ -63,6 +64,7 @@ def create_team_objects(nominations_list):
 
     return teams
 
+
 def sort_teams(teams):
     divisions = {}
     for team_name, data in teams.items():
@@ -73,6 +75,7 @@ def sort_teams(teams):
         divisions[team_division][team_name] = data
 
     return divisions
+
 
 def create_division_report(name, teams):
     awards = {
@@ -108,11 +111,14 @@ def create_division_report(name, teams):
 
 
 def get_award_list(teams, designator):
-    class_list = [team[designator] for team in teams.values() if designator in team]
+    class_list = [team[designator]
+                  for team in teams.values() if designator in team]
 
     if type(class_list[0]) is list:
-        class_list = [scout for scout_list in class_list for scout in scout_list]
+        class_list = [
+            scout for scout_list in class_list for scout in scout_list]
     return sorted(class_list)
+
 
 def prettyprint(obj):
     print(json.dumps(obj, indent=4))

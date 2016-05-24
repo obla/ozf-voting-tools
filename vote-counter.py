@@ -2,11 +2,18 @@ import json
 
 
 def main():
-    votes = get_votes('votes.txt')
-    prettyprint(votes)
+    votes = get_votes('votes_test.txt')
+    for division, voting in votes.items():
+        produce_division_report(division, voting)
+
 
 def get_votes(filename):
-    voting_divisions = {'premier':{}, 'intermediate':{}, 'open':{}, 'general': {}}
+    voting_divisions = {
+        'premier': {},
+        'intermediate': {},
+        'open': {},
+        'general': {}
+    }
 
     with open(filename, 'r') as votes_file:
         raw_votes = votes_file.read().split('\n')
@@ -35,30 +42,18 @@ def get_votes(filename):
     return voting_divisions
 
 
-def prettyprint(obj):
-    print(json.dumps(obj, indent=4))
+def produce_division_report(division, voting):
+    print(division)
+    print('=' * len(division))
+
+    for vote_category, voting_log in voting.items():
+        winner = process_award(voting_log)
+        print(vote_category + ':', winner)
 
 
-def process_award_old(award_object):
-    first_votes = {person: votes[0] for person, votes in award_object.items()}
-    total = sum(first_votes.values())
-
-    winner = None
-    for person, vote in first_votes.items():
-        if vote/total > 0.5:
-            winner = person
-
-    if winner is not None:
-        return winner
-    else:
-        redistribute_votes(award_object)
-
-
-
-def redistribute_votes(voting):
+def redistribute_votes(voting, winner):
     first_votes = count_first_votes(voting)
     loser = min(first_votes, key=first_votes.get)
-
     # remove loser from voting
     for i, player_list in enumerate(voting):
         if loser in player_list:
@@ -66,23 +61,31 @@ def redistribute_votes(voting):
     return(voting)
 
 
+def tie_is_unbreakable(voting):
+    vote_positions = 0
+    for vote_set in voting:
+        vote_positions = max(len(vote_set), vote_positions)
+
+    print(vote_positions)
+    if vote_positions == 2:
+        return True
+    else:
+        return False
+
+
 def count_first_votes(voting):
     first_votes = {}
-    print(voting)
-    for vote in voting:
-        if len(vote) > 0:
-            first_vote = vote[0]
-            if first_vote not in first_votes:
-                first_votes[first_vote] = 1
-            else:
-                first_votes[first_vote] += 1
 
-    for vote in voting:
-        if len(vote) > 1:
-            for later_vote in vote[1:]:
-                if later_vote not in first_votes:
-                    first_votes[later_vote] = 0
+    for vote_set in voting:
+        if len(vote_set) > 0:
+            for i, vote in enumerate(vote_set):
+                if vote not in first_votes:
+                    first_votes[vote] = 0
+                if i == 0:
+                    first_votes[vote] += 1
+
     return first_votes
+
 
 def process_award(voting):
     votes = count_first_votes(voting)
@@ -90,12 +93,18 @@ def process_award(voting):
     winner = max(votes, key=votes.get)
     winning_votes = votes[winner]
     total = sum(votes.values())
+    percentage = winning_votes / total
 
-    if winning_votes / total < 0.5:
-        return process_award(redistribute_votes(voting))
-    else:
+    if percentage > 0.5:
         return winner
+    if percentage == 0.5 and tie_is_unbreakable(voting):
+        winners = [winner for votelist in votes for winner in votelist]
+        return ' and '.join(winners)
+
+    return process_award(redistribute_votes(voting, winner))
 
 
+def prettyprint(thing):
+    print(json.dumps(thing, indent=4))
 
 main()
