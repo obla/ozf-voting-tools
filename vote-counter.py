@@ -1,4 +1,5 @@
 import json
+import argparse
 
 
 def main():
@@ -7,11 +8,15 @@ def main():
     args = parser.parse_args()
 
     votes = get_votes(args.file)
-    for division, voting in votes.items():
+    for division, voting in sorted(votes.items()):
         produce_division_report(division, voting)
 
 
 def get_votes(filename):
+    with open(filename, 'r') as votes_file:
+        lines = [vote_line.strip().lower()
+                 for vote_line in votes_file.readlines()
+                 if vote_line not in ['', '\n']]
     voting_divisions = {
         'premier': {},
         'intermediate': {},
@@ -19,26 +24,29 @@ def get_votes(filename):
         'general': {}
     }
 
-    with open(filename, 'r') as votes_file:
-        raw_votes = votes_file.read().split('\n')
+    current_division = ''
+    for line in lines:
+        category, votes = tuple(line.split(':'))
+        category = category.strip()
+        votes = votes.strip()
 
-    raw_votes = [vote.strip() for vote in raw_votes if vote not in ['\n', '']]
-
-    for vote_line in raw_votes:
-        heading, votes = tuple(vote_line.split(':'))
-        heading = heading.strip()
-        votes = [vote.strip() for vote in votes.split(',')]
-        if heading == 'Your team division':
-            current_division = votes[0]
-        elif heading == 'Your team name':
+        if category == 'your team division':
+            current_division = votes
+        elif category == 'your team name':
             pass
         else:
-            if heading in ['Premier MVP', 'Best Caster']:
+            if category in ['premier mvp', 'best caster']:
                 current_division, temp_division = 'general', current_division
 
-            if heading not in voting_divisions[current_division]:
-                voting_divisions[current_division][heading] = []
-            voting_divisions[current_division][heading] += [votes]
+            if len(votes.split(',')) > 1:
+                votes = votes.split(',')
+            else:
+                votes = [votes]
+            votes = [vote.strip() for vote in votes]
+
+            if category not in voting_divisions[current_division]:
+                voting_divisions[current_division][category] = []
+            voting_divisions[current_division][category] += [votes]
 
             if current_division == 'general':
                 current_division = temp_division
@@ -50,65 +58,67 @@ def produce_division_report(division, voting):
     print(division)
     print('=' * len(division))
 
-    for vote_category, voting_log in voting.items():
-        winner = process_award(voting_log)
-        print(vote_category + ':', winner)
+    for vote_category, ballots in sorted(voting.items()):
+        winners = process_votes(ballots)
+        print(vote_category + ':', end=' ')
+        print(*winners, sep=' and ')
 
 
-def redistribute_votes(voting, winner):
-    first_votes = count_first_votes(voting)
-    loser = min(first_votes, key=first_votes.get)
-    # remove loser from voting
-    for i, player_list in enumerate(voting):
-        if loser in player_list:
-            voting[i].remove(loser)
-    return(voting)
-
-
-def tie_is_unbreakable(voting):
-    vote_positions = 0
-    for vote_set in voting:
-        vote_positions = max(len(vote_set), vote_positions)
-
-    print(vote_positions)
-    if vote_positions == 2:
-        return True
-    else:
-        return False
-
-
-def count_first_votes(voting):
-    first_votes = {}
-
-    for vote_set in voting:
+def get_counts(ballots):
+    first_votes = dict()
+    for vote_set in ballots:
         if len(vote_set) > 0:
             for i, vote in enumerate(vote_set):
                 if vote not in first_votes:
                     first_votes[vote] = 0
                 if i == 0:
                     first_votes[vote] += 1
-
     return first_votes
 
 
-def process_award(voting):
-    votes = count_first_votes(voting)
+def get_winners(ballots):
+    counts = get_counts(ballots)
 
-    winner = max(votes, key=votes.get)
-    winning_votes = votes[winner]
-    total = sum(votes.values())
-    percentage = winning_votes / total
+    max_count = max(counts.values())
+    num_counts = sum(counts.values())
 
-    if percentage > 0.5:
-        return winner
-    if percentage == 0.5 and tie_is_unbreakable(voting):
-        winners = [winner for votelist in votes for winner in votelist]
-        return ' and '.join(winners)
+    potential_winners = [canidate for (canidate, count) in counts.items()
+                         if count == max_count]
 
-    return process_award(redistribute_votes(voting, winner))
+    if max_count >= num_counts/2 or len(potential_winners) == len(counts):
+        return potential_winners
+    else:
+        return []
 
 
-def prettyprint(thing):
-    print(json.dumps(thing, indent=4))
+def get_losers(ballots):
+    counts = get_counts(ballots)
+    min_count = min(counts.values())
+
+    potential_losers = [canidate for (canidate, count) in counts.items()
+                        if count == min_count]
+
+    if len(potential_losers) == len(counts):
+        return []
+    else:
+        return potential_losers
+
+
+def remove_canidate(ballots, canidate):
+    for ballot in ballots:
+        while canidate in ballot:
+            ballot.remove(canidate)
+
+
+def process_votes(ballots):
+    while True:
+        winners = get_winners(ballots)
+        if winners:
+            break
+
+        losers = get_losers(ballots)
+        for loser in losers:
+            remove_canidate(ballots, loser)
+    return winners
 
 main()
