@@ -35,7 +35,7 @@ def get_votes(filename):
         elif category == 'your team name':
             pass
         else:
-            if category in ['premier mvp', 'best caster']:
+            if category in ['premier mvp', 'best caster', 'best dressed team']:
                 current_division, temp_division = 'general', current_division
 
             if len(votes.split(',')) > 1:
