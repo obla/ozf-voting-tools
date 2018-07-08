@@ -44,13 +44,10 @@ def create_team_objects(nominations_list):
                 teams[current_team]['division'] = 'intermediate'
             if 'prem' in data.lower():
                 teams[current_team]['division'] = 'premier'
-        elif 'Best Scout' in heading:
-            if 'scouts' in teams[current_team]:
-                teams[current_team]['scouts'] += [data]
-            else:
-                teams[current_team]['scouts'] = [data]
-        elif 'Best Pocket' in heading:
-            teams[current_team]['pocket'] = data
+        elif 'Best Pocket Scout' in heading:
+            teams[current_team]['scoutpocket'] = data
+        elif 'Best Flank Scout' in heading:
+            teams[current_team]['scoutflank'] = data
         elif 'Best Roaming' in heading:
             teams[current_team]['roamer'] = data
         elif 'Best Medic' in heading:
@@ -79,7 +76,8 @@ def sort_teams(teams):
 
 def create_division_report(name, teams):
     awards = {
-        'Best Scout': 'scouts',
+        'Best Pocket Scout': 'scoutpocket',
+        'Best Pocket Scout': 'scoutflank',
         'Best Utility': 'utility',
         'Best Pocket': 'pocket',
         'Best Roamer': 'roamer',
