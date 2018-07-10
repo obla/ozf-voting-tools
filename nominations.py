@@ -30,7 +30,7 @@ def create_team_objects(nominations_list):
     teams = {}
 
     for line in nominations_list:
-        heading, data = tuple(line.split(':'))
+        heading, data = line.split(':', 1)
         heading = heading.strip()
         data = data.strip()
 
@@ -48,8 +48,10 @@ def create_team_objects(nominations_list):
             teams[current_team]['scoutpocket'] = data
         elif 'Best Flank Scout' in heading:
             teams[current_team]['scoutflank'] = data
-        elif 'Best Roaming' in heading:
+        elif 'Best Roaming Soldier' in heading:
             teams[current_team]['roamer'] = data
+        elif 'Best Pocket Soldier' in heading:
+            teams[current_team]['pocket'] = data
         elif 'Best Medic' in heading:
             teams[current_team]['medic'] = data
         elif 'Best Demoman' in heading:
