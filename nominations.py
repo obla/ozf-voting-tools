@@ -79,7 +79,7 @@ def sort_teams(teams):
 def create_division_report(name, teams):
     awards = {
         'Best Pocket Scout': 'scoutpocket',
-        'Best Pocket Scout': 'scoutflank',
+        'Best Flank Scout': 'scoutflank',
         'Best Utility': 'utility',
         'Best Pocket': 'pocket',
         'Best Roamer': 'roamer',
