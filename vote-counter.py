@@ -21,6 +21,7 @@ def get_votes(filename):
         'premier': {},
         'intermediate': {},
         'open': {},
+        'main': {},
         'general': {}
     }
 
