@@ -42,6 +42,8 @@ def create_team_objects(nominations_list):
                 teams[current_team]['division'] = 'open'
             if 'intermediate' in data.lower():
                 teams[current_team]['division'] = 'intermediate'
+            if 'main' in data.lower():
+                teams[current_team]['division'] = 'main'
             if 'prem' in data.lower():
                 teams[current_team]['division'] = 'premier'
         elif 'Best Pocket Scout' in heading:
